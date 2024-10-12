@@ -1,9 +1,11 @@
 {
-  "name": "@monorepo-template/functions",
+  "name": "@my-app/functions",
   "version": "0.0.0",
   "dependencies": {
+    "@hono/valibot-validator": "^0.3.1",
     "@monorepo-template/core": "*",
-    "sst": "*"
+    "hono": "^3.0.0",
+    "sst": "3.1.21"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.137"

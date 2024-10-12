@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "dependencies": {
     "@monorepo-template/core": "*",
-    "sst": "*"
+    "sst": "3.1.21"
   },
   "scripts": {
     "shell": "sst shell tsx"
