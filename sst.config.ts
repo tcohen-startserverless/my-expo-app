@@ -27,11 +27,13 @@ export default $config({
         rangeKey: "sk",
       },
     });
+
     const myApi = new sst.aws.Function("MyApi", {
       url: true,
       link: [bucket, table],
       handler: "packages/functions/src/index.handler",
     });
+
     new sst.x.DevCommand("expo", {
       dev: {
         command: "bun run start",
@@ -44,6 +46,7 @@ export default $config({
         EXPO_PUBLIC_API_URL: myApi.url,
       },
     });
+
     return {
       api: myApi.url,
     };

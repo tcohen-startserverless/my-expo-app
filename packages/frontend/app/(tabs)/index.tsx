@@ -1,51 +1,31 @@
-import { StyleSheet, Platform } from 'react-native';
-import type { AppType } from '@my-app/functions'
-import { hc } from 'hono/client';
-import { Database, DatabaseAdapter } from '@nozbe/watermelondb';
-import SQLiteAdapter from '@nozbe/watermelondb/adapters/sqlite';
-import LokiJSAdapter from '@nozbe/watermelondb/adapters/lokijs';
-import schema from '@/model/schema'
-import migrations from '@/model/migrations';
-import Task  from '@/model/Task';
+import { StyleSheet } from 'react-native';
+import { client } from '@/api';
+import Task from '@/data/models/Task';
+import { withObservables } from '@nozbe/watermelondb/react'
 
-let adapter: DatabaseAdapter;
-
-if (Platform.OS === 'web') {
-  adapter = new LokiJSAdapter({
-    schema,
-    migrations,
-    useWebWorker: false,
-    useIncrementalIndexedDB: true,
-    onSetUpError: error => {
-      console.error(error)
-    }
-  });
-} else {
-  adapter = new SQLiteAdapter({
-    schema,
-    migrations,
-    onSetUpError: error => {
-      console.error(error)
-    }
-  });
-}
-
-const database = new Database({
-  adapter,
-  modelClasses: [
-    Task
-  ],
-})
-
-const api = process.env.EXPO_PUBLIC_API_URL!
-const client = hc<AppType>(api)
 
 export default function HomeScreen() {
   return (
     <div>
+      <EnhancedTask/>
     </div>
   );
 }
+
+const component = ({ task }: { task: Task }) => {
+  return (
+    <div>
+      <p>{task.name}</p>
+      <p>{task.description}</p>
+    </div>
+  );
+};
+
+const enhance = withObservables(['task'], ({ task }) => ({
+  task
+}));
+
+const EnhancedTask = enhance(component);
 
 const styles = StyleSheet.create({
 });

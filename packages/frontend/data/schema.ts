@@ -8,9 +8,9 @@ export default appSchema({
       columns: [
         { name: "name", type: "string" },
         { name: "date", type: "string" },
-        {name: "is_complete", type: "boolean"},
-        {name: 'created_at', type: 'string'},
-        {name: 'updated_at', type: 'string'}
+        { name: "is_complete", type: "boolean" },
+        { name: 'created_at', type: 'string' },
+        { name: 'updated_at', type: 'string' }
       ]
     })
   ]
