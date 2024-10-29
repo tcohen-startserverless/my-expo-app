@@ -1,5 +1,4 @@
 /// <reference path="./.sst/platform/config.d.ts" />
-
 export default $config({
   app(input) {
     return {
@@ -16,18 +15,22 @@ export default $config({
     };
   },
   async run() {
-    const bucket = new sst.aws.Bucket("Bucket");
     const table = new sst.aws.Dynamo("Table", {
       fields: {
         pk: "string",
         sk: "string",
+        gsi1pk: "string",
+        gsi1sk: "string",
       },
-      primaryIndex: {
-        hashKey: "pk",
-        rangeKey: "sk",
+      primaryIndex: { hashKey: "pk", rangeKey: "sk" },
+      globalIndexes: {
+        GSI1: {
+          hashKey: "gsi1pk",
+          rangeKey: "gsi1sk",
+        },
       },
     });
-
+    const bucket = new sst.aws.Bucket("Bucket");
     const myApi = new sst.aws.Function("MyApi", {
       url: true,
       link: [bucket, table],
