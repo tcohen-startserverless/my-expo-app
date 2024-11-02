@@ -20,7 +20,7 @@ export const tasks = new Hono()
     return c.json(result);
   })
   .get('/:id', vValidator('param', TaskSchema.GetTaskInput), async (c) => {
-    const input = c.req.valid('param');
-    const result = await TaskService.get(input);
+    const params = c.req.param();
+    const result = await TaskService.get({id: params.id});
     return c.json(result);
   })

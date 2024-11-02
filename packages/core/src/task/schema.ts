@@ -1,6 +1,6 @@
 import * as v from 'valibot'
 
-export module TaskSchema {
+export namespace TaskSchema {
   export const CreateTaskInput = v.object({
     id: v.optional(v.string()),
     name: v.string("Missing name"),
@@ -8,7 +8,7 @@ export module TaskSchema {
   })
 
   export const UpdateTaskInput = v.object({
-    id: v.string("Missing id"),
+    id: v.string("Missing taskId"),
     attributes: v.partial(v.omit(CreateTaskInput, ["id"]))
   })
 
@@ -20,8 +20,10 @@ export module TaskSchema {
     id: v.string("Missing id"),
   })
 
-  export type CreateTaskInput = v.InferInput<typeof CreateTaskInput>
-  export type UpdateTaskInput = v.InferInput<typeof UpdateTaskInput>
-  export type DeleteTaskInput = v.InferInput<typeof DeleteTaskInput>
-  export type GetTaskInput = v.InferInput<typeof GetTaskInput>
+  export namespace Types {
+    export type CreateTaskInput = v.InferInput<typeof CreateTaskInput>
+    export type UpdateTaskInput = v.InferInput<typeof UpdateTaskInput>
+    export type DeleteTaskInput = v.InferInput<typeof DeleteTaskInput>
+    export type GetTaskInput = v.InferInput<typeof GetTaskInput>
+  }
 }
