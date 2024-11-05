@@ -1,0 +1,65 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+
+      - name: Deploy SST app
+        run: |
+          npx sst deploy --stage ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
+        env:
+          CI: true
+
+      - name: Install Expo CLI
+        run: npm install -g expo-cli eas-cli
+
+      - name: Setup EAS
+        run: |
+          cd packages/frontend
+          eas login -u ${{ secrets.EXPO_CLI_USERNAME }} -p ${{ secrets.EXPO_CLI_PASSWORD }}
+
+      - name: Build and Deploy to Expo
+        run: |
+          cd packages/frontend
+          npx sst shell --stage ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }} \
+            "echo EXPO_PUBLIC_API_URL=\$SST_Api_url > .env"
+
+          eas build \
+            --platform all \
+            --non-interactive \
+            --profile ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
+
+          eas update --auto
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}

@@ -5,6 +5,9 @@ import { tasks } from './task'
 
 const app = new Hono()
   .use(logger())
+  .get('/hello', async (c) => {
+    return c.json({ message: 'Hello, World!' })
+  })
   .route('/tasks', tasks)
 
 export const handler = handle(app)

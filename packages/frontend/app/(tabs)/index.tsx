@@ -1,31 +1,22 @@
-import { StyleSheet } from 'react-native';
 import { client } from '@/api';
-import Task from '@/data/models/Task';
-import { withObservables } from '@nozbe/watermelondb/react'
-
+import { useEffect, useState } from 'react';
+import { View, Text } from 'react-native';
 
 export default function HomeScreen() {
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    const fetchHello = async () => {
+      const res = await client.hello.$get();
+      const data = await res.json();
+      setMessage(data.message);
+    };
+    fetchHello();
+  }, []);
+
   return (
-    <div>
-      <EnhancedTask/>
-    </div>
+    <View>
+      <Text>{message}</Text>
+    </View>
   );
 }
-
-const component = ({ task }: { task: Task }) => {
-  return (
-    <div>
-      <p>{task.name}</p>
-      <p>{task.description}</p>
-    </div>
-  );
-};
-
-const enhance = withObservables(['task'], ({ task }) => ({
-  task
-}));
-
-const EnhancedTask = enhance(component);
-
-const styles = StyleSheet.create({
-});

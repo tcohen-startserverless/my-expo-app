@@ -9,7 +9,7 @@ export const tasks = new Hono()
     const result = await TaskService.create(input);
     return c.json(result);
   })
-  .post('/update', vValidator('json', TaskSchema.UpdateTaskInput), async (c) => {
+  .post('/patch', vValidator('json', TaskSchema.UpdateTaskInput), async (c) => {
     const input = c.req.valid('json');
     const result = await TaskService.patch(input);
     return c.json(result);
