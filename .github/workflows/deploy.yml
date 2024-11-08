@@ -39,8 +39,9 @@ jobs:
         run: |
           STAGE=prod
           echo "Deploying to stage: $STAGE"
-          bunx sst deploy --stage $STAGE
-          API_URL=$(bunx sst output Api --stage $STAGE)
+          DEPLOY_OUTPUT=$(bunx sst deploy --stage $STAGE)
+          echo "$DEPLOY_OUTPUT"
+          API_URL=$(echo "$DEPLOY_OUTPUT" | grep "api:" | cut -d' ' -f4)
           echo "API URL: $API_URL"
           echo "api-url=$API_URL" >> $GITHUB_OUTPUT
         env:
