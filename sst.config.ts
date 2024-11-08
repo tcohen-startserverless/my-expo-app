@@ -9,7 +9,7 @@ export default $config({
       providers: {
         aws: {
           region: "us-west-2",
-          profile: input?.stage === "prod" ? "prod" : "start-serverless-dev",
+          ...(input?.stage !== "prod" && { profile: "start-serverless-dev" }),
         },
       },
     };
