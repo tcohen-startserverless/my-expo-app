@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: Deploy
 
 on:
@@ -9,9 +10,10 @@ on:
       - main
 
 jobs:
-  deploy:
+  deploy-infrastructure:
     runs-on: ubuntu-latest
-
+    outputs:
+      api-url: ${{ steps.sst-deploy.outputs.api-url }}
     steps:
       - uses: actions/checkout@v3
 
@@ -36,30 +38,124 @@ jobs:
           aws-region: us-west-2
 
       - name: Deploy SST app
+        id: sst-deploy
         run: |
-          npx sst deploy --stage ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
+          STAGE=${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
+          API_URL=$(npx sst deploy --stage $STAGE --json | jq -r '.api')
+          echo "api-url=${API_URL}" >> $GITHUB_OUTPUT
         env:
           CI: true
 
-      - name: Install Expo CLI
-        run: npm install -g expo-cli eas-cli
+  build-android:
+    needs: deploy-infrastructure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
 
-      - name: Setup EAS
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Create env file
         run: |
           cd packages/frontend
-          eas login -u ${{ secrets.EXPO_CLI_USERNAME }} -p ${{ secrets.EXPO_CLI_PASSWORD }}
+          echo "EXPO_PUBLIC_API_URL=${{ needs.deploy-infrastructure.outputs.api-url }}" > .env
 
-      - name: Build and Deploy to Expo
+      - name: Install dependencies
         run: |
           cd packages/frontend
-          npx sst shell --stage ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }} \
-            "echo EXPO_PUBLIC_API_URL=\$SST_Api_url > .env"
+          npm ci
 
-          eas build \
-            --platform all \
-            --non-interactive \
-            --profile ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
+      - name: Build Android app
+        run: |
+          cd packages/frontend
+          eas build --platform android --local --output ./build/app-release.aab --profile ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
 
+      - name: Upload Android Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build
+          path: packages/frontend/build/app-release.aab
+
+  build-ios:
+    needs: deploy-infrastructure
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Create env file
+        run: |
+          cd packages/frontend
+          echo "EXPO_PUBLIC_API_URL=${{ needs.deploy-infrastructure.outputs.api-url }}" > .env
+
+      - name: Install dependencies
+        run: |
+          cd packages/frontend
+          npm ci
+
+      - name: Build iOS app
+        run: |
+          cd packages/frontend
+          eas build --platform ios --local --output ./build/app.ipa --profile ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
+
+      - name: Upload iOS Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build
+          path: packages/frontend/build/app.ipa
+
+  update-expo:
+    needs: [build-android, build-ios, deploy-infrastructure]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Update Expo
+        run: |
+          cd packages/frontend
           eas update --auto
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
