@@ -37,9 +37,10 @@ jobs:
       - name: Deploy SST app
         id: sst-deploy
         run: |
-          DEPLOY_OUTPUT=$(bunx sst deploy --stage prod --json)
-          echo "Deploy output: $DEPLOY_OUTPUT"
-          API_URL=$(echo "$DEPLOY_OUTPUT" | jq -r '.api')
+          STAGE=prod
+          echo "Deploying to stage: $STAGE"
+          bunx sst deploy --stage $STAGE
+          API_URL=$(bunx sst output Api --stage $STAGE)
           echo "API URL: $API_URL"
           echo "api-url=$API_URL" >> $GITHUB_OUTPUT
         env:
