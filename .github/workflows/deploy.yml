@@ -38,7 +38,7 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::871600132779:role/DevopsStack-DeploymentRoleC7BBCF2C-2U2BLZBBIYPB
           role-session-name: GithubActions
-          aws-region: us-west-2
+          aws-region: us-east-1
 
       - name: Deploy SST app
         id: sst-deploy
