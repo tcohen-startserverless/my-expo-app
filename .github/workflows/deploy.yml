@@ -37,7 +37,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::871600132779:role/DevopsStack-DeploymentRoleC7BBCF2C-2U2BLZBBIYPB
-          aws-region: us-east-1
+          aws-region: us-west-2
 
       - name: Deploy SST app
         id: sst-deploy
