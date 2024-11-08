@@ -37,15 +37,13 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::871600132779:role/DevopsStack-DeploymentRoleC7BBCF2C-2U2BLZBBIYPB
-          role-session-name: GithubActions
           aws-region: us-east-1
 
       - name: Deploy SST app
         id: sst-deploy
         run: |
-          STAGE=${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
-          API_URL=$(npx sst deploy --stage $STAGE --json | jq -r '.api')
-          echo "api-url=${API_URL}" >> $GITHUB_OUTPUT
+          npx sst deploy --stage prod
+          echo "api-url=testing" >> $GITHUB_OUTPUT
         env:
           CI: true
 
